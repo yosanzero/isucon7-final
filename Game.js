@@ -90,7 +90,6 @@ class Game {
   async buyItem (itemId, countBought, reqTime) {
     try {
       const connection = await this.pool.getConnection()
-      await connection.beginTransaction()
 
       try {
         const [[{ countBuying }]] = await connection.query('SELECT COUNT(*) as countBuying FROM buying WHERE room_name = ? AND item_id = ?', [this.roomName, itemId])
@@ -123,7 +122,7 @@ class Game {
         }
 
         await connection.query('INSERT INTO buying(room_name, item_id, ordinal, time) VALUES(?, ?, ?, ?)', [this.roomName, itemId, countBought + 1, reqTime])
-        await connection.commit()
+
         connection.release()
         return true
 
