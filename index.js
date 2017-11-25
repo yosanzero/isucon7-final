@@ -1,3 +1,4 @@
+require('newrelic')
 const path = require('path')
 const http = require('http')
 const bigint = require('bigint')
