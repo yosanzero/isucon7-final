@@ -8,7 +8,7 @@ const serve = require('koa-static')
 const mysql = require('mysql2/promise')
 const Game = require('./Game')
 
-const app = websockify(new Koa())
+const app = module.exports = websockify(new Koa())
 const pool = mysql.createPool({
   connectionLimit: 20,
   host: process.env.ISU_DB_HOST || '127.0.0.1',
