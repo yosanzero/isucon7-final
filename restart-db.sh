@@ -33,10 +33,10 @@ sudo cp etc/nginx/sites-enabled/cco.nginx.conf /etc/nginx/sites-enabled/cco.ngin
 # restart all service
 sudo systemctl daemon-reload
 sudo systemctl start cco.nodejs.service
-# sudo systemctl restart mysql
+sudo systemctl restart mysql
 # sudo systemctl restart redis-server
 # sudo systemctl restart react
 sudo systemctl restart nginx
 
-# echo "" | sudo tee /var/log/mysql/slow.log
+echo "" | sudo tee /var/log/mysql/slow.log
 echo "" | sudo tee /var/log/nginx/access.log
