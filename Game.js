@@ -23,6 +23,7 @@ class Game {
 
   async getStatus () {
     const connection = await this.pool.getConnection();
+    await connection.beginTransaction()
   
     if (items.length === 0) {
       await init(connection);
@@ -38,6 +39,7 @@ class Game {
         .then(async (values) => {
           const [addings] = values[0];
           const [buyings] = values[1];
+          await connection.commit();
           connection.release();
 
           const status = this.calcStatus(currentTime, mItems, addings, buyings)
