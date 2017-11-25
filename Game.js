@@ -39,7 +39,7 @@ class Game {
           const status = this.calcStatus(currentTime, mItems, addings, buyings)
 
           // calcStatusに時間がかかる可能性があるので タイムスタンプを取得し直す
-          const latestTime = await this.getCurrentTime()
+          const latestTime = this.getCurrentTime()
           status.time = latestTime
 
           return status;
@@ -145,12 +145,12 @@ class Game {
     // See page 13 and 17 in https://www.slideshare.net/ichirin2501/insert-51938787
     await connection.query('INSERT INTO room_time(room_name, time) VALUES (?, 0) ON DUPLICATE KEY UPDATE time = time', [this.roomName])
     const [[{ time }]] = await connection.query('SELECT time FROM room_time WHERE room_name = ? FOR UPDATE', [this.roomName])
-    const [[{ currentTime }]] = await connection.query('SELECT floor(unix_timestamp(current_timestamp(3))*1000) AS currentTime')
-    if (parseInt(time, 10) > parseInt(currentTime, 10)) {
+    const currentTime = parseInt(Date.now(), 10);
+    if (parseInt(time, 10) > currentTime) {
       throw new Error('room time is future')
     }
     if (reqTime !== 0) {
-      if (reqTime < parseInt(currentTime, 10)) {
+      if (reqTime < currentTime) {
         throw new Error('reqTime is past')
       }
     }
@@ -314,14 +314,8 @@ class Game {
     }
   }
 
-  async getCurrentTime () {
-    try {
-      const [[{currentTime}]] = await this.pool.query('SELECT floor(unix_timestamp(current_timestamp(3))*1000) AS currentTime')
-      return parseInt(currentTime, 10)
-    } catch (e) {
-      console.error(e)
-      return 0
-    }
+  getCurrentTime() {
+    return parseInt(Date.now(), 10)
   }
 
   big2exp (n) {
