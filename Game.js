@@ -28,6 +28,7 @@ class Game {
         .then(async (values) => {
           const [addings] = values[0];
           const [buyings] = values[1];
+          connection.release();
 
           const status = this.calcStatus(currentTime, mItems, addings, buyings)
 
