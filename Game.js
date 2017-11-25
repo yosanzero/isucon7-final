@@ -13,7 +13,7 @@ class Game {
     await connection.beginTransaction()
 
     try {
-      const currentTime = await this.updateRoomTime(connection, 0)
+      const currentTime = this.updateRoomTime(connection, 0)
       const mItems = {}
       // MItemクラスへのコンストラクタで全て使うため、*でOK.
       const [items] = await connection.query('SELECT * FROM m_item')
@@ -61,7 +61,7 @@ class Game {
       await connection.beginTransaction()
 
       try {
-        await this.updateRoomTime(connection, reqTime)
+        this.updateRoomTime(connection, reqTime)
         await connection.query('INSERT INTO adding(room_name, time, isu) VALUES (?, ?, \'0\') ON DUPLICATE KEY UPDATE isu=isu', [this.roomName, reqTime])
 
         const [[{ isu }]] = await connection.query('SELECT isu FROM adding WHERE room_name = ? AND time = ? FOR UPDATE', [this.roomName, reqTime])
@@ -89,8 +89,8 @@ class Game {
       await connection.beginTransaction()
 
       try {
-        await this.updateRoomTime(connection, reqTime)
         const [[{ countBuying }]] = await connection.query('SELECT COUNT(*) as countBuying FROM buying WHERE room_name = ? AND item_id = ?', [this.roomName, itemId])
+        this.updateRoomTime(connection, reqTime)
         if (parseInt(countBuying, 10) != countBought) {
           throw new Error(`roomName=${this.roomName}, itemId=${itemId} countBought+1=${countBought+1} is already bought`)
         }
@@ -141,22 +141,15 @@ class Game {
   // トランザクション開始後この関数を呼ぶ前にクエリを投げると、
   // そのトランザクション中の通常のSELECTクエリが返す結果がロック取得前の
   // 状態になることに注意 (keyword: MVCC, repeatable read).
-  async updateRoomTime (connection, reqTime) {
-    // See page 13 and 17 in https://www.slideshare.net/ichirin2501/insert-51938787
-    await connection.query('INSERT INTO room_time(room_name, time) VALUES (?, 0) ON DUPLICATE KEY UPDATE time = time', [this.roomName])
-    const [[{ time }]] = await connection.query('SELECT time FROM room_time WHERE room_name = ? FOR UPDATE', [this.roomName])
+  updateRoomTime(connection, reqTime) {
     const currentTime = parseInt(Date.now(), 10);
-    if (parseInt(time, 10) > currentTime) {
-      throw new Error('room time is future')
-    }
     if (reqTime !== 0) {
       if (reqTime < currentTime) {
         throw new Error('reqTime is past')
       }
     }
 
-    await connection.query('UPDATE room_time SET time = ? WHERE room_name = ?', [currentTime, this.roomName])
-    return currentTime
+    return currentTime;
   }
 
   calcStatus (currentTime, mItems, addings, buyings) {
