@@ -31,6 +31,8 @@ sudo cp etc/nginx/sites-enabled/cco.nginx.conf /etc/nginx/sites-enabled/cco.ngin
 
 # restart all service
 sudo systemctl daemon-reload
+sudo systemctl stop cco.nodejs.service
+sleep 1
 sudo systemctl start cco.nodejs.service
 # sudo systemctl restart mysql
 # sudo systemctl restart redis-server
