@@ -62,17 +62,10 @@ class Game {
   async addIsu (reqIsu, reqTime) {
     try {
       const connection = await this.pool.getConnection()
-      await connection.beginTransaction()
 
       try {
         this.updateRoomTime(connection, reqTime)
-        await connection.query('INSERT INTO adding(room_name, time, isu) VALUES (?, ?, \'0\') ON DUPLICATE KEY UPDATE isu=isu', [this.roomName, reqTime])
-
-        const [[{ isu }]] = await connection.query('SELECT isu FROM adding WHERE room_name = ? AND time = ? FOR UPDATE', [this.roomName, reqTime])
-        const newIsu = reqIsu.add(bigint(isu))
-
-        await connection.query('UPDATE adding SET isu = ? WHERE room_name = ? AND time = ?', [newIsu.toString(), this.roomName, reqTime])
-        await connection.commit()
+        await connection.query('INSERT INTO adding(room_name, time, isu) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE isu=CAST(isu AS UNSIGNED)+?', [this.roomName, reqTime, reqIsu.toString(), reqIsu.toString()])
         connection.release()
         return true
 
