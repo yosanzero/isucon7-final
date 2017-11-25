@@ -2,6 +2,19 @@ const bigint = require('bigint')
 const MItem = require('./MItem')
 const Exponential = require('./Exponential')
 
+let items = [];
+let mItems = {};
+
+const init = async (connection) => {
+  const [a] = await connection.query('SELECT * FROM m_item')
+  items = a;
+  console.log(items);
+  for (let item of items) {
+    mItems[item.item_id] = new MItem(item)
+  }
+  console.log('mItems:', mItems);
+};
+
 class Game {
   constructor(roomName, pool) {
     this.roomName = roomName
@@ -10,15 +23,12 @@ class Game {
 
   async getStatus () {
     const connection = await this.pool.getConnection();
-
+  
+    if (items.length === 0) {
+      await init(connection);
+    }
     try {
       const currentTime = this.updateRoomTime(connection, 0)
-      const mItems = {}
-      // MItemクラスへのコンストラクタで全て使うため、*でOK.
-      const [items] = await connection.query('SELECT * FROM m_item')
-      for (let item of items) {
-        mItems[item.item_id] = new MItem(item)
-      }
 
       return Promise.all(
         [
@@ -73,6 +83,7 @@ class Game {
   async buyItem (itemId, countBought, reqTime) {
     try {
       const connection = await this.pool.getConnection()
+      await connection.beginTransaction()
 
       try {
         const [[{ countBuying }]] = await connection.query('SELECT COUNT(*) as countBuying FROM buying WHERE room_name = ? AND item_id = ?', [this.roomName, itemId])
@@ -89,8 +100,7 @@ class Game {
 
         const [buyings] = await connection.query('SELECT item_id, ordinal, time FROM buying WHERE room_name = ?', [this.roomName])
         for (let b of buyings) {
-          let [[mItem]] = await connection.query('SELECT * FROM m_item WHERE item_id = ?', [b.item_id])
-          let item = new MItem(mItem)
+          let item = mItems[b.item_id];
           let cost = item.getPrice(parseInt(b.ordinal, 10)).mul(bigint('1000'))
           totalMilliIsu = totalMilliIsu.sub(cost)
           if (parseInt(b.time, 10) <= reqTime) {
@@ -99,15 +109,14 @@ class Game {
           }
         }
 
-        const [[mItem]] = await connection.query('SELECT * FROM m_item WHERE item_id = ?', [itemId])
-        const item = new MItem(mItem)
+        const item = mItems[itemId];
         const need = item.getPrice(countBought + 1).mul(bigint('1000'))
         if (totalMilliIsu.cmp(need) < 0) {
           throw new Error('not enough')
         }
 
         await connection.query('INSERT INTO buying(room_name, item_id, ordinal, time) VALUES(?, ?, ?, ?)', [this.roomName, itemId, countBought + 1, reqTime])
-
+        await connection.commit();
         connection.release()
         return true
 
