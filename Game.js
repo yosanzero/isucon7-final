@@ -9,8 +9,7 @@ class Game {
   }
 
   async getStatus () {
-    const connection = await this.pool.getConnection()
-    await connection.beginTransaction()
+    const connection = await this.pool.getConnection();
 
     try {
       const currentTime = this.updateRoomTime(connection, 0)
@@ -27,12 +26,6 @@ class Game {
           connection.query('SELECT item_id, ordinal, time FROM buying WHERE room_name = ?', [this.roomName]),
         ])
         .then(async (values) => {
-          // 前の段階でSELECTしかしていないので、commitとreleaseは非同期でどうぞ
-          setTimeout(async () => {
-            await connection.commit()
-            connection.release()
-          }, 0);
-
           const [addings] = values[0];
           const [buyings] = values[1];
 
