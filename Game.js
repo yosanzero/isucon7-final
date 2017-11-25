@@ -20,18 +20,30 @@ class Game {
       for (let item of items) {
         mItems[item.item_id] = new MItem(item)
       }
-      const [addings] = await connection.query('SELECT time, isu FROM adding WHERE room_name = ?', [this.roomName])
-      const [buyings] = await connection.query('SELECT item_id, ordinal, time FROM buying WHERE room_name = ?', [this.roomName])
-      await connection.commit()
-      connection.release()
 
-      const status = this.calcStatus(currentTime, mItems, addings, buyings)
+      return Promise.all(
+        [
+          connection.query('SELECT time, isu FROM adding WHERE room_name = ?', [this.roomName]),
+          connection.query('SELECT item_id, ordinal, time FROM buying WHERE room_name = ?', [this.roomName]),
+        ])
+        .then(async (values) => {
+          await connection.commit()
+          connection.release()
 
-      // calcStatusに時間がかかる可能性があるので タイムスタンプを取得し直す
-      const latestTime = await this.getCurrentTime()
-      status.time = latestTime
+          const [addings] = values[0];
+          const [buyings] = values[1];
 
-      return status
+          const status = this.calcStatus(currentTime, mItems, addings, buyings)
+
+          // calcStatusに時間がかかる可能性があるので タイムスタンプを取得し直す
+          const latestTime = await this.getCurrentTime()
+          status.time = latestTime
+
+          return status;
+        })
+        .catch((e) => {
+          console.error(e);
+        });
 
     } catch (e) {
       await connection.rollback()
