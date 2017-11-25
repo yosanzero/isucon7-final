@@ -14,7 +14,7 @@ const pool = mysql.createPool({
   host: process.env.ISU_DB_HOST || '127.0.0.1',
   port: process.env.ISU_DB_PORT || '3306',
   user: process.env.ISU_DB_USER || 'root',
-  password: process.env.ISU_DB_PASSWORD || 'r00tpwdr00tpwd',
+  password: process.env.ISU_DB_PASSWORD || '',
   database: 'isudb',
   charset: 'utf8mb4',
 })
