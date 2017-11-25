@@ -4,8 +4,6 @@ const Exponential = require('./Exponential')
 
 let items = [];
 let mItems = {};
-const itemPower    = {} // ItemID => Power
-const itemBuilding = {} // ItemID => Buildings
 
 const init = async (connection) => {
   const [a] = await connection.query('SELECT * FROM m_item')
@@ -15,11 +13,6 @@ const init = async (connection) => {
     mItems[item.item_id] = new MItem(item)
   }
   console.log('mItems:', mItems);
-
-  for (let itemId in mItems) {
-    itemPower[itemId] = bigint('0')
-    itemBuilding[itemId] = []
-  }
 };
 
 class Game {
@@ -69,10 +62,17 @@ class Game {
   async addIsu (reqIsu, reqTime) {
     try {
       const connection = await this.pool.getConnection()
+      await connection.beginTransaction()
 
       try {
         this.updateRoomTime(connection, reqTime)
-        await connection.query('INSERT INTO adding(room_name, time, isu) VALUES (?, ?, CAST(? AS UNSIGNED)) ON DUPLICATE KEY UPDATE isu=CAST(isu AS UNSIGNED)+CAST(? AS UNSIGNED)', [this.roomName, reqTime, reqIsu.toString(), reqIsu.toString()])
+        await connection.query('INSERT INTO adding(room_name, time, isu) VALUES (?, ?, \'0\') ON DUPLICATE KEY UPDATE isu=isu', [this.roomName, reqTime])
+  
+        const [[{ isu }]] = await connection.query('SELECT isu FROM adding WHERE room_name = ? AND time = ? FOR UPDATE', [this.roomName, reqTime])
+        const newIsu = reqIsu.add(bigint(isu))
+  
+        await connection.query('UPDATE adding SET isu = ? WHERE room_name = ? AND time = ?', [newIsu.toString(), this.roomName, reqTime])
+        await connection.commit()
         connection.release()
         return true
 
@@ -159,15 +159,22 @@ class Game {
     let totalMilliIsu = bigint('0')
     let totalPower    = bigint('0')
 
+    const itemPower    = {} // ItemID => Power
     const itemPrice    = {} // ItemID => Price
     const itemOnSale   = {} // ItemID => OnSale
     const itemBuilt    = {} // ItemID => BuiltCount
     const itemBought   = {} // ItemID => CountBought
+    const itemBuilding = {} // ItemID => Buildings
     const itemPower0   = {} // ItemID => currentTime における Power
     const itemBuilt0   = {} // ItemID => currentTime における BuiltCount
 
     const addingAt = {} // Time => currentTime より先の Adding
     const buyingAt = {} // Time => currentTime より先の Buying
+
+    for (let itemId in mItems) {
+      itemPower[itemId] = bigint('0')
+      itemBuilding[itemId] = []
+    }
 
     for (let a of addings) {
       // adding は adding.time に isu を増加させる
