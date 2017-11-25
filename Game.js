@@ -144,7 +144,7 @@ class Game {
   // そのトランザクション中の通常のSELECTクエリが返す結果がロック取得前の
   // 状態になることに注意 (keyword: MVCC, repeatable read).
   updateRoomTime(connection, reqTime) {
-    const currentTime = parseInt(Date.now(), 10);
+    const currentTime = Date.now();
     if (reqTime !== 0) {
       if (reqTime < currentTime) {
         throw new Error('reqTime is past')
