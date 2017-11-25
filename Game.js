@@ -303,7 +303,7 @@ class Game {
   }
 
   getCurrentTime() {
-    return parseInt(Date.now(), 10)
+    return Date.now();
   }
 
   big2exp (n) {
