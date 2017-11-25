@@ -27,7 +27,9 @@ const getInitializeHandler = async (ctx) => {
 }
 
 const getRoomHandler = async (ctx, roomName) => {
-  await pool.query('INSERT INTO room_time(room_name, time) VALUES (?, 0) ON DUPLICATE KEY UPDATE time = time', [roomName])
+  if (typeof roomName === 'string') {
+    await pool.query('INSERT INTO room_time(room_name, time) VALUES (?, 0) ON DUPLICATE KEY UPDATE time = time', [roomName])
+  }
   
   roomName = typeof roomName !== 'string' ? '' : roomName
   ctx.body = {
