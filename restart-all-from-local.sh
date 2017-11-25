@@ -13,4 +13,4 @@ scp restart-db.sh root@59.106.219.75:restart-db.sh
 ssh -A root@163.43.29.31 /bin/bash restart.sh ${BRANCH}
 ssh -A root@59.106.209.101 /bin/bash restart.sh ${BRANCH}
 ssh -A root@59.106.218.140 /bin/bash restart.sh ${BRANCH}
-ssh -A root@59.106.219.75 restart-db.sh ${BRANCH}
+ssh -A root@59.106.219.75 /bin/bash restart-db.sh ${BRANCH}

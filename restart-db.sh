@@ -14,7 +14,6 @@ cd /home/isucon/webapp/nodejs
 # force pull
 git fetch origin
 git reset --hard origin/${BRANCH}
-npm install
 
 # build
 # sudo chmod -R 777 /home/isucon/webapp/react/public/

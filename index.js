@@ -14,7 +14,7 @@ const pool = mysql.createPool({
   host: process.env.ISU_DB_HOST || '127.0.0.1',
   port: process.env.ISU_DB_PORT || '3306',
   user: process.env.ISU_DB_USER || 'root',
-  password: process.env.ISU_DB_PASSWORD || '',
+  password: process.env.ISU_DB_PASSWORD || 'r00tpwdr00tpwd',
   database: 'isudb',
   charset: 'utf8mb4',
 })
@@ -96,7 +96,7 @@ const wsGameHandler = async (ctx, roomName) => {
 }
 
 app
-  .use(serve(path.resolve(__dirname, '..', 'public')))
+  .use(serve(path.resolve(__dirname, '.', 'public')))
   .use(router.get('/initialize', getInitializeHandler))
   .use(router.get('/room', getRoomHandler))
   .use(router.get('/room/:room_name', getRoomHandler))
