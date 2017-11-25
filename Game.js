@@ -15,6 +15,7 @@ class Game {
     try {
       const currentTime = await this.updateRoomTime(connection, 0)
       const mItems = {}
+      // MItemクラスへのコンストラクタで全て使うため、*でOK.
       const [items] = await connection.query('SELECT * FROM m_item')
       for (let item of items) {
         mItems[item.item_id] = new MItem(item)
