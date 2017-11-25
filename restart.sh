@@ -9,7 +9,7 @@ fi
 echo "Branch: ${BRANCH}"
 
 set -e
-cd /home/isucon/webapp
+cd /home/isucon/webapp/nodejs
 
 # force pull
 git fetch origin
@@ -22,20 +22,20 @@ git reset --hard origin/${BRANCH}
 # (cd react && npm install && npm cache clean && NODE_ENV=production npm run build)
 
 # copy config
-# sudo cp etc/nginx/nginx.conf /etc/nginx/nginx.conf
-# sudo cp etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
+sudo cp etc/nginx/nginx.conf /etc/nginx/nginx.conf
+sudo cp etc/nginx/sites-enabled/cco.nginx.conf /etc/nginx/sites-enabled/cco.nginx.conf
 # sudo cp etc/mysql/mysql.conf.d/mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
 # sudo cp etc/redis/redis.conf /etc/redis/redis.conf
 # sudo cp nodejs/nodejs.service /etc/systemd/system/
 # sudo cp react/react.service /etc/systemd/system/
 
 # restart all service
-# sudo systemctl daemon-reload
-# sudo systemctl restart nodejs
+sudo systemctl daemon-reload
+sudo systemctl start cco.nodejs.service
 # sudo systemctl restart mysql
 # sudo systemctl restart redis-server
 # sudo systemctl restart react
-# sudo systemctl restart nginx
+sudo systemctl restart nginx
 
 echo "" | sudo tee /var/log/mysql/slow.log
 echo "" | sudo tee /var/log/nginx/access.log
