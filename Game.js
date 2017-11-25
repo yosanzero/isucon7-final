@@ -23,7 +23,6 @@ class Game {
 
   async getStatus () {
     const connection = await this.pool.getConnection();
-    await connection.beginTransaction()
   
     if (items.length === 0) {
       await init(connection);
@@ -39,7 +38,6 @@ class Game {
         .then(async (values) => {
           const [addings] = values[0];
           const [buyings] = values[1];
-          await connection.commit();
           connection.release();
 
           const status = this.calcStatus(currentTime, mItems, addings, buyings)
@@ -99,6 +97,7 @@ class Game {
   async buyItem (itemId, countBought, reqTime) {
     try {
       const connection = await this.pool.getConnection()
+      await connection.beginTransaction()
 
       try {
         const [[{ countBuying }]] = await connection.query('SELECT COUNT(*) as countBuying FROM buying WHERE room_name = ? AND item_id = ?', [this.roomName, itemId])
@@ -131,7 +130,7 @@ class Game {
         }
 
         await connection.query('INSERT INTO buying(room_name, item_id, ordinal, time) VALUES(?, ?, ?, ?)', [this.roomName, itemId, countBought + 1, reqTime])
-
+        await connection.commit();
         connection.release()
         return true
 
