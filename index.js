@@ -8,13 +8,13 @@ const serve = require('koa-static')
 const mysql = require('mysql2/promise')
 const Game = require('./Game')
 
-const app = websockify(new Koa())
+const app = module.exports = websockify(new Koa())
 const pool = mysql.createPool({
   connectionLimit: 20,
   host: process.env.ISU_DB_HOST || '127.0.0.1',
   port: process.env.ISU_DB_PORT || '3306',
   user: process.env.ISU_DB_USER || 'root',
-  password: process.env.ISU_DB_PASSWORD || 'r00tpwdr00tpwd',
+  password: process.env.ISU_DB_PASSWORD || '',
   database: 'isudb',
   charset: 'utf8mb4',
 })
@@ -107,3 +107,5 @@ app.ws
 
 // const server = http.createServer(app.callback()).listen(5000)
 app.listen(5000)
+
+process.on('unhandledRejection', console.dir);
