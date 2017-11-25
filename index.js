@@ -107,3 +107,5 @@ app.ws
 
 // const server = http.createServer(app.callback()).listen(5000)
 app.listen(5000)
+
+process.on('unhandledRejection', console.dir);
